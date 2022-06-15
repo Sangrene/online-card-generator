@@ -1,6 +1,9 @@
-import React, { useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { nanoid } from "nanoid";
 import { PlusCircleIcon } from "@heroicons/react/solid";
+import TextField from "./ui/TextField";
+import Link from "next/link";
+import { createGameDistribution, createGameHash } from "../core/core";
 
 type State = {
   players: { id: string; name: string }[];
@@ -31,7 +34,7 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         players: state.players.map((p) =>
-          p.id === action.type ? { id: p.id, name: action.name } : p
+          p.id === action.id ? { id: p.id, name: action.name } : p
         ),
       };
     }
@@ -45,40 +48,61 @@ const DEFAULT_STATE: State = { players: [], numberOfCardsToDistribute: 52 };
 
 const CreateGameForm = () => {
   const [state, dispatch] = useReducer(reducer, DEFAULT_STATE);
+  const [hash, setHash] = useState<string>();
+  useEffect(() => {
+    const game = createGameDistribution({
+      players: state.players.map((p) => p.name),
+      numberOfCardsToDistribute: state.numberOfCardsToDistribute,
+    });
+    setHash(createGameHash(game));
+  }, [state]);
 
   return (
-    <div className="shadow sm:rounded-md">
-      <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-3 sm:col-span-2">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Players
-              </label>
-              <button
-                className="flex px-3 py-2 bg-red-500 mr-1 text-white font-semibold rounded"
-                onClick={() => dispatch({ type: "addPlayer" })}
-              >
-                <PlusCircleIcon />
-                <span className="ml-1">Add Player</span>
-              </button>
-            </div>
-            <div className="mt-1 flex rounded-md shadow-sm">
-              {state.players.map((player) => (
-                <input
-                  key={player.id}
-                  type="text"
-                  name="company-website"
-                  id="company-website"
-                  className="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-r-md sm:text-sm border-gray-300"
-                  placeholder="John"
-                  value={player.name}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+    <div className="shadow sm:rounded-md m-5 p-4">
+      <div className="flex flex-row items-center">
+        <label className="text-lg font-semibold text-gray-700">Players</label>
+        <button
+          type="button"
+          className="text-blue-700 ml-2 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm text-center inline-flex items-center mr-2  dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          onClick={() => dispatch({ type: "addPlayer" })}
+        >
+          <PlusCircleIcon className="w-5 h-5" />
+        </button>
       </div>
+      <div className="mt-4 flex flex-col rounded-md shadow-sm">
+        {state.players.map((player) => (
+          <TextField
+            label={"Player name"}
+            key={player.id}
+            textFieldProps={{
+              value: player.name,
+              onChange: (e) =>
+                dispatch({
+                  type: "updatePlayer",
+                  id: player.id,
+                  name: e.target.value,
+                }),
+            }}
+          />
+        ))}
+      </div>
+      <div className="flex items-center content-between mt-4">
+        <label className="text-lg font-semibold text-gray-700">
+          Number of cards to distribute
+        </label>
+      </div>
+      <input
+        type="number"
+        className="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-r-md sm:text-sm border-gray-300 mt-1"
+        value={state.numberOfCardsToDistribute}
+        onChange={(e) =>
+          dispatch({
+            type: "updateNumberOfCardsToDistribute",
+            number: Number(e.target.value),
+          })
+        }
+      />
+      <Link href={`/game?hash=${hash}`}>Create distribution</Link>
     </div>
   );
 };

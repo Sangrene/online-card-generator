@@ -5,7 +5,7 @@ interface GameParams {
   numberOfCardsToDistribute?: number;
 }
 
-interface Game {
+export interface Game {
   distribution: {
     [key: string]: string[];
   };
@@ -27,9 +27,33 @@ const CARD_NUMBERS = [
   "A",
 ];
 const CARD_COLORS = ["c", "d", "h", "s"];
+const IMAGE_COLORS: { [key: string]: string } = {
+  c: "clubs",
+  d: "diamonds",
+  h: "hearts",
+  s: "spades",
+};
+const IMAGE_NUMBERS: { [key: string]: string } = {
+  "2": "02",
+  3: "03",
+  4: "04",
+  5: "05",
+  6: "06",
+  7: "07",
+  8: "08",
+  9: "09",
+};
+
+export const computeCardImageName = (name: string) => {
+  const parts = name.split("_");
+  const imageColor = IMAGE_COLORS[parts[0]];
+  const imageNumber = IMAGE_NUMBERS[parts[1]] ?? parts[1];
+
+  return `card_${imageColor}_${imageNumber}.png`;
+};
 
 /**
- * As clubs_02 or spades_A
+ * As c_2 or s_A
  */
 export const CARD_DECK = CARD_COLORS.reduce<string[]>(
   (deck, color) => [
@@ -53,6 +77,7 @@ export const createGameDistribution = ({
   numberOfCardsToDistribute = 52,
   players,
 }: GameParams): Game => {
+  if (players.length === 0) return { distribution: {} };
   const cardLeftToDistributes = [...CARD_DECK];
   let numberOfCardLeftToDistributes = numberOfCardsToDistribute;
   const distribution: Game["distribution"] = players.reduce(

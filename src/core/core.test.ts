@@ -3,6 +3,7 @@ import {
   createGameDistribution,
   createGameHash,
   getGameFromHash,
+  computeCardImageName,
 } from "./core";
 describe("Game", () => {
   it("Correctly setup base 52 card deck", () => {
@@ -43,6 +44,14 @@ describe("Game", () => {
         players: ["Hugo", "Elodie", "Giorgio"],
       });
       expect(createGameHash(game).length).toBeLessThan(2000);
+    });
+  });
+
+  describe("Card images", () => {
+    it("Can compute image name from card", () => {
+      expect(computeCardImageName("c_4")).toEqual("card_clubs_04.png");
+      expect(computeCardImageName("s_K")).toEqual("card_spades_K.png");
+
     });
   });
 });
